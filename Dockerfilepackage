@@ -1,0 +1,54 @@
+FROM marsel7/openfang:latest
+
+USER root
+
+# ============================================
+# System Packages
+# ============================================
+RUN apt-get update && apt-get install -y \
+    # Video processing (Clip Hand)
+    ffmpeg \
+    # Downloader (Clip Hand)
+    yt-dlp \
+    # Python (Browser Hand + general)
+    python3 \
+    python3-pip \
+    # Browser (Browser Hand)
+    chromium \
+    chromium-driver \
+    # General tools
+    curl \
+    wget \
+    git \
+    jq \
+    # Extra tools
+    imagemagick \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# Python Packages
+# ============================================
+RUN pip3 install --no-cache-dir --break-system-packages \
+    playwright \
+    requests \
+    pillow \
+    yt-dlp
+
+# ============================================
+# Playwright Browser Install (Browser Hand)
+# ============================================
+RUN python3 -m playwright install chromium --with-deps || true
+
+# ============================================
+# Environment
+# ============================================
+ENV PORT=4200
+ENV OPENFANG_LISTEN=0.0.0.0:4200
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium
+
+WORKDIR /app
+
+EXPOSE 4200
+
+CMD ["openfang", "start", "--host", "0.0.0.0", "--port", "4200"]
